@@ -103,7 +103,7 @@ class _MyHomePageState extends State<HomePage> {
       future: placemarks,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center();
         } else {
           final placemark = snapshot.data!.first;
           return SafeArea(
@@ -127,6 +127,7 @@ class _MyHomePageState extends State<HomePage> {
                         ),
                       ),
                       weather(),
+                      Expanded(child: hourlyWeather())
                     ],
                   )));
         }
@@ -144,6 +145,59 @@ class _MyHomePageState extends State<HomePage> {
                     const TextStyle(fontSize: 80, fontWeight: FontWeight.w400),
               )),
       );
+/*  
+ */
+  Widget hourlyWeather() => FutureBuilder(
+      future: weatherData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        } else {
+          final hourlyData = snapshot.data!.hourly;
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      "PREVISIONE ORARIA",
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Container(
+                      width: double.infinity, height: 1, color: Colors.white12),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: hourlyData.temperature2M.length,
+                      itemBuilder: (context, index) => ListTile(
+                        title: Text(
+                          hourlyData.time[index].hour.toString() + ":00",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        trailing: Text(
+                          hourlyData.temperature2M[index].toString() + "°",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      separatorBuilder: (context, index) => Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: Colors.white12),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        }
+      });
 
   @override
   void initState() {
