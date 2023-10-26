@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:weatherapp/model/weather-model.dart';
+import 'package:geocoding/geocoding.dart';
 
 void main() {
   runApp(const App());
@@ -28,21 +29,25 @@ class HomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<HomePage> {
   final dio = Dio();
-  late Position? _currentPosition;
-  late WeatherData weatherData;
+  late Future<WeatherData> weatherData;
+  late Future<List<Placemark>> placemarks;
 
-
-
-  Future<void> getWeatherData() async {
-    final String url = "https://api.open-meteo.com/v1/forecast?latitude=${_currentPosition?.latitude}&longitude=${_currentPosition?.longitude}&current=temperature_2m,is_day,rain&hourly=temperature_2m,is_day&timezone=auto&forecast_days=1";
+  Future<WeatherData> getWeatherData() async {
+    final currentPosition = await _getCurrentPosition();
+    final String url =
+        "https://api.open-meteo.com/v1/forecast?latitude=${currentPosition.latitude}&longitude=${currentPosition.longitude}&current=temperature_2m,is_day,rain&hourly=temperature_2m,is_day&timezone=auto&forecast_days=1";
     final response = await dio.get(url);
-    final WeatherData weatherData = WeatherData.fromJson(response.data);
-    setState(() {
-      this.weatherData = weatherData;
-    });
+    return WeatherData.fromJson(response.data);
   }
 
-  Future<void> _getCurrentPosition() async {
+  Future<List<Placemark>> getCurrentLocation() async {
+    final currentPosition = await _getCurrentPosition();
+    final List<Placemark> placemarks = await placemarkFromCoordinates(
+        currentPosition.latitude, currentPosition.longitude);
+    return placemarks;
+  }
+
+  Future<Position> _getCurrentPosition() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return Future.error('Location services are disabled.');
@@ -61,26 +66,100 @@ class _MyHomePageState extends State<HomePage> {
       }
     }
     final position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentPosition = position;
-    });
-    
-    if (_currentPosition != null) {
-      await getWeatherData();
-    }
+    return position;
   }
+
+  Widget backgroundImage() => FutureBuilder(
+        future: weatherData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            final isRain = snapshot.data!.current.rain;
+            final isDay = snapshot.data!.current.isDay;
+            final backgroundImage = isRain
+                ? 'assets/rain.jpg'
+                : isDay
+                    ? 'assets/day.jpg'
+                    : 'assets/night.jpg';
+            return Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(backgroundImage),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black
+                        .withOpacity(0.5), // Regola l'opacità del colore
+                    BlendMode.darken,
+                  ),
+                ),
+              ),
+            );
+          }
+        },
+      );
+
+  Widget body() => FutureBuilder(
+      future: placemarks,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        } else {
+          final placemark = snapshot.data!.first;
+          return SafeArea(
+              child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        placemark.locality.toString(),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        placemark.country.toString(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      weather(),
+                    ],
+                  )));
+        }
+      });
+
+  Widget weather() => FutureBuilder(
+        future: weatherData,
+        builder: (context, snapshot) => snapshot.connectionState !=
+                ConnectionState.done
+            ? CircularProgressIndicator()
+            : Center(
+                child: Text(
+                snapshot.data!.current.temperature2M.toString() + "°",
+                style:
+                    const TextStyle(fontSize: 80, fontWeight: FontWeight.w400),
+              )),
+      );
 
   @override
   void initState() {
     super.initState();
-    _getCurrentPosition();
+    placemarks = getCurrentLocation();
+    weatherData = getWeatherData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('Weather App')),
-        body: Image.network('https://picsum.photos/200/300'));
+        body: Stack(
+      children: [
+        backgroundImage(),
+        body(),
+      ],
+    ));
   }
-
 }
