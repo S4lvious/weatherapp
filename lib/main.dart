@@ -108,7 +108,7 @@ class _MyHomePageState extends State<HomePage> {
           final placemark = snapshot.data!.first;
           return SafeArea(
               child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
                       Text(
@@ -137,10 +137,10 @@ class _MyHomePageState extends State<HomePage> {
         future: weatherData,
         builder: (context, snapshot) => snapshot.connectionState !=
                 ConnectionState.done
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : Center(
                 child: Text(
-                snapshot.data!.current.temperature2M.toString() + "°",
+                "${snapshot.data!.current.temperature2M}°",
                 style:
                     const TextStyle(fontSize: 80, fontWeight: FontWeight.w400),
               )),
@@ -178,12 +178,12 @@ class _MyHomePageState extends State<HomePage> {
                       itemCount: hourlyData.temperature2M.length,
                       itemBuilder: (context, index) => ListTile(
                         title: Text(
-                          hourlyData.time[index].hour.toString() + ":00",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          "${hourlyData.time[index].hour}:00",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         trailing: Text(
-                          hourlyData.temperature2M[index].toString() + "°",
-                          style: TextStyle(fontSize: 16),
+                          "${hourlyData.temperature2M[index]}°",
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                       separatorBuilder: (context, index) => Container(
