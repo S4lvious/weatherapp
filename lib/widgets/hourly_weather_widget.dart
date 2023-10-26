@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:weatherapp/model/weather-model.dart';
+import 'package:weatherapp/model/weather_model.dart';
 
 class HourlyWeather extends StatelessWidget {
 const HourlyWeather({Key? key, required this.weatherData}) : super(key: key);

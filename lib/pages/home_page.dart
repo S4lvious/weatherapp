@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:weatherapp/model/weather-model.dart';
+import 'package:weatherapp/model/weather_model.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:weatherapp/service/weather_service.dart';
-import 'package:weatherapp/widgets/Weather.dart';
-import 'package:weatherapp/widgets/background.dart';
-import 'package:weatherapp/widgets/hourly_weather.dart';
+import 'package:weatherapp/widgets/weather_widget.dart';
+import 'package:weatherapp/widgets/background_widget.dart';
+import 'package:weatherapp/widgets/hourly_weather_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -2,7 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:weatherapp/model/weather-model.dart';
+import 'package:weatherapp/model/weather_model.dart';
 
 class WeatherService {
 
